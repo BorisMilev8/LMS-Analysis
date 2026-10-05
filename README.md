@@ -50,3 +50,7 @@ See [alpha checklist](docs/ALPHA.md) for scope, pending checks, and limitations.
 Plugin source is licensed under GNU GPL version 3 or later, consistent with Moodle. See https://www.gnu.org/licenses/gpl-3.0.html for the license terms.
 
 Version 0.3.0 adds weekly summaries without changing the database. If upgrading directly from 0.1.0, the 0.2.0 effort-field migration still runs.
+
+## Personal reminders in version 0.4.0
+
+Open Edit planning details, enable Personal reminder, and select a time on or before the activity action date. At or after that time the reminder appears when you open the planner, even if your current filters exclude that activity. Disable the reminder to dismiss it. This is an in-planner reminder, not email/push delivery or a background notification. Only activities still available in the planner can appear. Update the plugin and run Site administration > Notifications to add the reminder field; earlier priorities and effort estimates are preserved.

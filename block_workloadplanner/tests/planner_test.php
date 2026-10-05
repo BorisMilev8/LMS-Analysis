@@ -71,4 +71,20 @@ final class planner_test extends \advanced_testcase {
         $this->expectException(\invalid_parameter_exception::class);
         planner::save($eventid, 3, 10081);
     }
+    public function test_reminder_only_record_and_isolation(): void {
+        [$first, $second, $eventid] = $this->fixture();
+        $at = time() + 3600;
+        planner::save($eventid, 0, 0, $at);
+        $this->assertEquals($at, planner::priorities()[$eventid]->reminderat);
+        $this->setUser($second);
+        $this->assertEmpty(planner::priorities());
+        $this->setUser($first);
+        planner::save($eventid, 0, 0, 0);
+        $this->assertEmpty(planner::priorities());
+    }
+    public function test_reminder_after_action_date_rejected(): void {
+        [$first, $second, $eventid] = $this->fixture();
+        $this->expectException(\invalid_parameter_exception::class);
+        planner::save($eventid, 0, 0, time() + 2 * DAYSECS);
+    }
 }

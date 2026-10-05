@@ -13,9 +13,9 @@ This is an implementation inventory, not measured quality evidence. A feature is
 | Enter effort estimates | Implemented | Moodle persistence test pending |
 | Filter by course or priority | Implemented | Standalone CI test; Moodle UI test pending |
 | Weekly effort summary | Implemented | Timezone CI tests; Moodle UI test pending |
-| Personal reminder scheduling | Not implemented | Pending |
+| Personal reminder scheduling | Implemented in planner | Standalone timing tests; Moodle test pending |
 
-Nine of ten planned user features have code (90% by equal feature count). Six initial critical features are represented, but their acceptance tests have not run. This denominator is explicit; it does not imply 90% of development effort or verified completion. One feature gap is known (10%); the defect percentage is unknown until tests are executed.
+Ten of ten planned user features have code (100% by equal feature count). Six initial critical features are represented, but their acceptance tests have not run. This denominator is explicit; it does not imply 100% of development effort or verified completion. No planned feature lacks code (0%); integration and deployment gaps remain; the defect percentage is unknown until tests are executed.
 
 ## Pending acceptance checks
 
@@ -31,7 +31,7 @@ Nine of ten planned user features have code (90% by equal feature count). Six in
 
 ## Known scope limits
 
-Only future actionable calendar activities are shown, for 90 days. The planner is not a complete assignment inventory: undated work, some external-tool work, completed activities, overdue activities and activities unavailable to the student may not appear. Action dates are not universally assignment due dates. Priorities belong to a calendar event ID and may need re-entry if that event is recreated. Records for removed events are retained until the user data is deleted or the plugin is uninstalled. Reminder scheduling is not included yet. Weekly totals group estimates by action dates; they do not allocate study time or guarantee a complete workload forecast. Calendar retrieval is capped at four pages of 50 events. Official Moodle plugin directory submission and marketplace review have not occurred.
+Only future actionable calendar activities are shown, for 90 days. The planner is not a complete assignment inventory: undated work, some external-tool work, completed activities, overdue activities and activities unavailable to the student may not appear. Action dates are not universally assignment due dates. Priorities belong to a calendar event ID and may need re-entry if that event is recreated. Records for removed events are retained until the user data is deleted or the plugin is uninstalled. Reminders appear only when the planner is opened; background delivery is not included. Weekly totals group estimates by action dates; they do not allocate study time or guarantee a complete workload forecast. Calendar retrieval is capped at four pages of 50 events. Official Moodle plugin directory submission and marketplace review have not occurred.
 
 ## Testing status at initial commit
 
@@ -56,3 +56,7 @@ The alpha milestone snapshot remains 0.1.0. This later candidate expands code co
 - Verify installation of the generated plugin ZIP in a disposable Moodle site.
 
 Standalone CI covers DST fallback, local week boundaries, year boundaries, unknown estimates, filtered totals and empty results. Full Moodle acceptance and stability tests are still pending.
+
+## Version 0.4.0 reminder acceptance
+
+All ten planned features now have implementation code; verified overall completion is still unknown. Reminder timing checks run in CI. Test upgrade from 0.3.0, reminder-only persistence, current-user isolation, disabling reminders, timezone display and rejection of times after the action date in Moodle. Reminders require opening the planner and do not send email/push. Removed, completed or no-longer-upcoming activities cannot generate a visible reminder. Earlier version inventory figures above are historical snapshots.

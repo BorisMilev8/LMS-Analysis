@@ -17,6 +17,8 @@ jobs:
         run: php tests/planning_view_test.php
       - name: Test weekly grouping and timezone boundaries
         run: php tests/weekly_test.php
+      - name: Test personal reminders
+        run: php tests/reminders_test.php
       - name: Build installable plugin ZIP
         run: |
           mkdir -p build

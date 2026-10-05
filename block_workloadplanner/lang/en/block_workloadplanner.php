@@ -44,3 +44,11 @@ $string['activitycount'] = 'Activities';
 $string['unestimated'] = 'Without estimates';
 $string['highpriority'] = 'High priority';
 $string['activitiesheading'] = 'Upcoming activities';
+
+$string['reminderat'] = 'Personal reminder';
+$string['reminderat_help'] = 'Enable and choose a date on or before the activity action date. The reminder appears when you open the planner at or after that time. It uses your Moodle timezone. Disable it here to dismiss it. No email or push notification is sent.';
+$string['invalidreminder'] = 'Choose a reminder on or before the activity action date.';
+$string['remindersheading'] = 'Your reminders';
+$string['remindernote'] = 'These reminders are ready now, including activities outside your selected filters. Open Edit planning details and disable Personal reminder to dismiss one.';
+$string['remindertime'] = 'Reminder time';
+$string['privacy:metadata:reminderat'] = 'The timestamp selected for a private in-planner reminder.';

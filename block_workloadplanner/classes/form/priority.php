@@ -18,6 +18,9 @@ class priority extends \moodleform {
         $mform->setType('effortminutes', PARAM_RAW_TRIMMED);
         $mform->setDefault('effortminutes', '0');
         $mform->addHelpButton('effortminutes', 'effortminutes', 'block_workloadplanner');
+        $mform->addElement('date_time_selector', 'reminderat',
+            get_string('reminderat', 'block_workloadplanner'), ['optional' => true]);
+        $mform->addHelpButton('reminderat', 'reminderat', 'block_workloadplanner');
         $this->add_action_buttons();
     }
     public function validation($data, $files) {
@@ -28,6 +31,10 @@ class priority extends \moodleform {
         $effort = (string)($data['effortminutes'] ?? '');
         if (!preg_match('/^[0-9]{1,5}$/D', $effort) || (int)$effort > 10080) {
             $errors['effortminutes'] = get_string('invalideffort', 'block_workloadplanner');
+        }
+        if (!\block_workloadplanner\reminders::valid((int)($data['reminderat'] ?? 0),
+                (int)$this->_customdata['actiondate'])) {
+            $errors['reminderat'] = get_string('invalidreminder', 'block_workloadplanner');
         }
         return $errors;
     }

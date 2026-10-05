@@ -39,9 +39,9 @@ class planner {
     public static function priorities(): array {
         global $DB, $USER;
         return $DB->get_records('block_workloadplanner_plan', ['userid' => $USER->id], '',
-            'eventid, priority, effortminutes, timemodified');
+            'eventid, priority, effortminutes, reminderat, timemodified');
     }
-    public static function save(int $eventid, int $priority, ?int $effortminutes = null): void {
+    public static function save(int $eventid, int $priority, ?int $effortminutes = null, ?int $reminderat = null): void {
         global $DB, $USER;
         if ($priority < 0 || $priority > 3) {
             throw new \invalid_parameter_exception('Invalid priority');
@@ -56,7 +56,11 @@ class planner {
         $conditions = ['userid' => $USER->id, 'eventid' => $eventid];
         $record = $DB->get_record('block_workloadplanner_plan', $conditions);
         $effortminutes = $effortminutes ?? (int)($record->effortminutes ?? 0);
-        if ($priority === 0 && $effortminutes === 0) {
+        $reminderat = $reminderat ?? (int)($record->reminderat ?? 0);
+        if (!reminders::valid($reminderat, (int)$events[$eventid]->timesort)) {
+            throw new \invalid_parameter_exception('Reminder must be on or before the activity action date');
+        }
+        if ($priority === 0 && $effortminutes === 0 && $reminderat === 0) {
             $DB->delete_records('block_workloadplanner_plan', $conditions);
             return;
         }
@@ -64,11 +68,13 @@ class planner {
             $record = (object)$conditions;
             $record->priority = $priority;
             $record->effortminutes = $effortminutes;
+            $record->reminderat = $reminderat;
             $record->timemodified = time();
             $DB->insert_record('block_workloadplanner_plan', $record);
         } else {
             $record->priority = $priority;
             $record->effortminutes = $effortminutes;
+            $record->reminderat = $reminderat;
             $record->timemodified = time();
             $DB->update_record('block_workloadplanner_plan', $record);
         }

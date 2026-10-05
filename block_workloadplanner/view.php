@@ -20,6 +20,25 @@ $events = \block_workloadplanner\planning_view::filter($allevents, $priorities, 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'block_workloadplanner'));
 echo html_writer::tag('p', get_string('window', 'block_workloadplanner'));
+$duereminders = \block_workloadplanner\reminders::due($allevents, $priorities, time());
+if ($duereminders) {
+    echo $OUTPUT->heading(get_string('remindersheading', 'block_workloadplanner'), 3);
+    echo html_writer::tag('p', get_string('remindernote', 'block_workloadplanner'));
+    $remindertable = new html_table();
+    $remindertable->head = [get_string('activity', 'block_workloadplanner'),
+        get_string('remindertime', 'block_workloadplanner'), get_string('editpriority', 'block_workloadplanner')];
+    foreach ($duereminders as $event) {
+        $remindertable->data[] = [
+            html_writer::link(new moodle_url($event->action->url), format_string($event->name)),
+            userdate($priorities[$event->id]->reminderat),
+            html_writer::link(new moodle_url('/blocks/workloadplanner/edit.php', ['eventid' => $event->id]),
+                get_string('editpriority', 'block_workloadplanner')),
+        ];
+    }
+    echo html_writer::start_div('table-responsive');
+    echo html_writer::table($remindertable);
+    echo html_writer::end_div();
+}
 if (!$allevents) {
     echo $OUTPUT->notification(get_string('empty', 'block_workloadplanner'), 'info');
 } else {
