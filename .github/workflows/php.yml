@@ -1,0 +1,30 @@
+name: PHP syntax
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+      - name: Check every plugin PHP file
+        run: find block_workloadplanner -name '*.php' -print0 | xargs -0 -n 1 php -l
+      - name: Test filtering and visible effort summaries
+        run: php tests/planning_view_test.php
+      - name: Test weekly grouping and timezone boundaries
+        run: php tests/weekly_test.php
+      - name: Build installable plugin ZIP
+        run: |
+          mkdir -p build
+          cp -R block_workloadplanner build/workloadplanner
+          cd build
+          zip -r workloadplanner.zip workloadplanner
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workloadplanner-plugin
+          path: build/workloadplanner.zip
+          if-no-files-found: error

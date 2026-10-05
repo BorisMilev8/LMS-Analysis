@@ -1,0 +1,46 @@
+<?php
+$string['pluginname'] = 'Workload planner';
+$string['workloadplanner:myaddinstance'] = 'Add a workload planner to the Dashboard';
+$string['workloadplanner:addinstance'] = 'Add a workload planner block';
+$string['openplanner'] = 'Open my planner';
+$string['intro'] = 'Plan your upcoming course activities and set your own priorities.';
+$string['window'] = 'Activities in the next 90 days, ordered by deadline. Dates shown are Moodle action dates and may be due dates, closing dates, or completion reminders.';
+$string['empty'] = 'No upcoming actionable course activities were found. Check your course pages for work without a calendar date.';
+$string['limited'] = 'Showing the first 200 activities. Other activities may appear in your Moodle Timeline or course pages.';
+$string['activity'] = 'Activity';
+$string['course'] = 'Course';
+$string['date'] = 'Action date';
+$string['priority'] = 'My priority';
+$string['priority0'] = 'Not set';
+$string['priority1'] = 'Low';
+$string['priority2'] = 'Medium';
+$string['priority3'] = 'High';
+$string['editpriority'] = 'Edit planning details';
+$string['saved'] = 'Your priority was saved.';
+$string['invalidpriority'] = 'Choose a valid priority.';
+$string['unavailable'] = 'This activity is not available in your current planner. It may have been completed, restricted, removed, or moved outside the planning window.';
+$string['privacy:metadata:block_workloadplanner_plan'] = "Stores a student's private planning priorities.";
+$string['privacy:metadata:userid'] = 'The user who owns the priority.';
+$string['privacy:metadata:eventid'] = 'The calendar event being planned.';
+$string['privacy:metadata:priority'] = 'The personal priority selected by the user.';
+$string['privacy:metadata:timemodified'] = 'When the priority was last updated.';
+
+$string['effortminutes'] = 'Estimated effort in minutes';
+$string['effortminutes_help'] = 'Enter a whole number from 0 to 10080. Zero means no estimate; it does not mean the activity needs no work. This estimate is private and does not change the assignment.';
+$string['invalideffort'] = 'Enter a whole number between 0 and 10080 minutes.';
+$string['noestimate'] = 'Not estimated';
+$string['allcourses'] = 'All courses';
+$string['allpriorities'] = 'All priorities';
+$string['filter'] = 'Apply filters';
+$string['resetfilters'] = 'Reset filters';
+$string['nofiltermatches'] = 'No activities match these filters. Reset filters to see all available activities.';
+$string['summary'] = '{$a->activities} activities shown; {$a->minutes} estimated minutes; {$a->unestimated} without an estimate.';
+$string['privacy:metadata:effortminutes'] = "The user's personal estimate of minutes needed for an activity.";
+
+$string['weeklyheading'] = 'Workload by action week';
+$string['weeklynote'] = 'Weeks run Monday to Sunday in your Moodle timezone. Totals use the current filters and group effort by activity action date, not by when you will study. Activities without estimates are counted separately.';
+$string['week'] = 'Week';
+$string['activitycount'] = 'Activities';
+$string['unestimated'] = 'Without estimates';
+$string['highpriority'] = 'High priority';
+$string['activitiesheading'] = 'Upcoming activities';
