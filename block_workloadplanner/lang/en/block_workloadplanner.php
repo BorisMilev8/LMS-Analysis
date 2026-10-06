@@ -52,3 +52,8 @@ $string['remindersheading'] = 'Your reminders';
 $string['remindernote'] = 'These reminders are ready now, including activities outside your selected filters. Open Edit planning details and disable Personal reminder to dismiss one.';
 $string['remindertime'] = 'Reminder time';
 $string['privacy:metadata:reminderat'] = 'The timestamp selected for a private in-planner reminder.';
+
+$string['sortby'] = 'Sort activities by';
+$string['sortdeadline'] = 'Action date (earliest first)';
+$string['sortpriority'] = 'Priority (highest first)';
+$string['sorteffort'] = 'Estimated effort (largest first)';

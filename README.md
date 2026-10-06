@@ -54,3 +54,7 @@ Version 0.3.0 adds weekly summaries without changing the database. If upgrading 
 ## Personal reminders in version 0.4.0
 
 Open Edit planning details, enable Personal reminder, and select a time on or before the activity action date. At or after that time the reminder appears when you open the planner, even if your current filters exclude that activity. Disable the reminder to dismiss it. This is an in-planner reminder, not email/push delivery or a background notification. Only activities still available in the planner can appear. Update the plugin and run Site administration > Notifications to add the reminder field; earlier priorities and effort estimates are preserved.
+
+## Sorting in version 0.5.0
+
+Choose Action date (earliest first), Priority (highest first), or Estimated effort (largest first), then apply the controls. Sorting works with course and priority filters. Missing priority and effort estimates follow known values. Ties use the earliest action date and then event ID. Totals and reminder eligibility do not change. This version requires no database schema change. Moodle interface testing remains pending.

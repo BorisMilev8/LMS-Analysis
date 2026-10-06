@@ -6,17 +6,22 @@ if (isguestuser()) {
 }
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $priority = optional_param('priority', -1, PARAM_INT);
+$sort = optional_param('sort', 'deadline', PARAM_ALPHA);
+if (!in_array($sort, ['deadline', 'priority', 'effort'], true)) {
+    throw new invalid_parameter_exception('Invalid planner sort');
+}
 if ($courseid < 0 || $priority < -1 || $priority > 3) {
     throw new invalid_parameter_exception('Invalid planner filter');
 }
 $PAGE->set_context(context_user::instance($USER->id));
-$PAGE->set_url('/blocks/workloadplanner/view.php', ['courseid' => $courseid, 'priority' => $priority]);
+$PAGE->set_url('/blocks/workloadplanner/view.php', ['courseid' => $courseid, 'priority' => $priority, 'sort' => $sort]);
 $PAGE->set_pagelayout('mydashboard');
 $PAGE->set_title(get_string('pluginname', 'block_workloadplanner'));
 $PAGE->set_heading(get_string('pluginname', 'block_workloadplanner'));
 $allevents = \block_workloadplanner\planner::activities();
 $priorities = \block_workloadplanner\planner::priorities();
 $events = \block_workloadplanner\planning_view::filter($allevents, $priorities, $courseid, $priority);
+$events = \block_workloadplanner\planning_view::sort($events, $priorities, $sort);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'block_workloadplanner'));
 echo html_writer::tag('p', get_string('window', 'block_workloadplanner'));
@@ -56,6 +61,12 @@ if (!$allevents) {
     echo html_writer::select($courses, 'courseid', $courseid, false, ['id' => 'planner-course']);
     echo html_writer::label(get_string('priority', 'block_workloadplanner'), 'planner-priority');
     echo html_writer::select($priorityoptions, 'priority', $priority, false, ['id' => 'planner-priority']);
+    $sortoptions = [];
+    foreach (['deadline', 'priority', 'effort'] as $mode) {
+        $sortoptions[$mode] = get_string('sort' . $mode, 'block_workloadplanner');
+    }
+    echo html_writer::label(get_string('sortby', 'block_workloadplanner'), 'planner-sort');
+    echo html_writer::select($sortoptions, 'sort', $sort, false, ['id' => 'planner-sort']);
     echo html_writer::tag('button', get_string('filter', 'block_workloadplanner'),
         ['type' => 'submit', 'class' => 'btn btn-primary ml-2']);
     echo html_writer::link(new moodle_url('/blocks/workloadplanner/view.php'),

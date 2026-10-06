@@ -48,4 +48,24 @@ class planning_view {
         ksort($weeks);
         return array_values($weeks);
     }
+    /** Deterministic sorting: unset priorities and unknown effort follow known values. */
+    public static function sort(array $events, array $plans, string $mode = 'deadline'): array {
+        if (!in_array($mode, ['deadline', 'priority', 'effort'], true)) {
+            throw new \InvalidArgumentException('Invalid planner sort');
+        }
+        uasort($events, function($a, $b) use ($plans, $mode) {
+            if ($mode === 'priority') {
+                $comparison = (int)($plans[$b->id]->priority ?? 0) <=> (int)($plans[$a->id]->priority ?? 0);
+            } else if ($mode === 'effort') {
+                $comparison = (int)($plans[$b->id]->effortminutes ?? 0) <=>
+                    (int)($plans[$a->id]->effortminutes ?? 0);
+            } else {
+                $comparison = 0;
+            }
+            // Earliest action date, then ID, resolve every tie consistently.
+            return $comparison ?: ((int)$a->timesort <=> (int)$b->timesort)
+                ?: ((int)$a->id <=> (int)$b->id);
+        });
+        return $events;
+    }
 }
