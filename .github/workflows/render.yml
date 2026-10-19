@@ -1,0 +1,65 @@
+name: Render deployment checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - run: find deploy/render -name '*.php' -print0 | xargs -0 -n 1 php -l
+      - run: sh -n deploy/render/start.sh && sh -n deploy/render/cron.sh
+      - run: php tests/render_environment_test.php
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Moodle with the plugin
+        run: docker build -t lms-render-test .
+      - name: Start disposable test database and application
+        run: |
+          docker network create moodle-render-test
+          docker run -d --name render-db --network moodle-render-test \
+            -e POSTGRES_DB=moodle -e POSTGRES_USER=moodle -e POSTGRES_PASSWORD=ci-test-only postgres:17
+          docker run -d --name render-web --network moodle-render-test -p 8080:10000 \
+            -e MOODLE_DB_HOST=render-db -e MOODLE_DB_NAME=moodle -e MOODLE_DB_USER=moodle \
+            -e MOODLE_DB_PASSWORD=ci-test-only -e MOODLE_WWWROOT=http://localhost:8080 \
+            -e MOODLE_ALLOW_HTTP=true -e MOODLE_ADMIN_EMAIL=ci@example.com \
+            -e 'MOODLE_ADMIN_PASSWORD=CiOnly-Strong2026!' -e MOODLE_PHPUNIT=true lms-render-test
+      - name: Verify installation and login page
+        run: |
+          ready=false
+          for attempt in $(seq 1 120); do
+            if curl --fail --silent http://localhost:8080/_health.php; then ready=true; break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' render-web)" != true ]; then break; fi
+            sleep 5
+          done
+          [ "$ready" = true ] || { docker logs render-web; exit 1; }
+          curl --fail --silent http://localhost:8080/login/index.php > /tmp/moodle-login.html
+          grep -q 'username' /tmp/moodle-login.html
+      - name: Initialize Moodle PHPUnit and run plugin integration tests
+        run: |
+          docker exec -u root -e COMPOSER_ALLOW_SUPERUSER=1 render-web composer install --no-interaction --prefer-dist --no-progress
+          docker exec -u root render-web chown -R www-data:www-data /var/www/html
+          docker exec -u www-data render-web php admin/tool/phpunit/cli/init.php --disable-composer
+          docker exec -u www-data render-web vendor/bin/phpunit blocks/workloadplanner/tests/planner_test.php
+      - name: Verify restart preserves installation
+        run: |
+          docker restart render-web
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost:8080/_health.php; then ready=true; break; fi
+            sleep 5
+          done
+          [ "$ready" = true ]
+      - name: Show application logs on failure
+        if: failure()
+        run: docker logs --tail 150 render-web || true
+      - name: Remove disposable containers
+        if: always()
+        run: docker rm -f render-web render-db || true

@@ -58,3 +58,7 @@ Open Edit planning details, enable Personal reminder, and select a time on or be
 ## Sorting in version 0.5.0
 
 Choose Action date (earliest first), Priority (highest first), or Estimated effort (largest first), then apply the controls. Sorting works with course and priority filters. Missing priority and effort estimates follow known values. Ties use the earliest action date and then event ID. Totals and reminder eligibility do not change. This version requires no database schema change. Moodle interface testing remains pending.
+
+## Render deployment
+
+See [Render setup](docs/RENDER.md) for the paid-service Blueprint, Docker image, initial admin setup and persistence details. The deployment files create a fresh site; local test data is not migrated automatically. No Render service has been provisioned by this commit.

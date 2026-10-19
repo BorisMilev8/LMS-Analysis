@@ -1,0 +1,53 @@
+# Paid resources: review Render's cost estimate before creating this Blueprint.
+services:
+  - type: web
+    name: lms-analysis-moodle
+    runtime: docker
+    plan: 1c-2g
+    region: virginia
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: off
+    healthCheckPath: /_health.php
+    disk:
+      name: moodledata
+      mountPath: /var/moodledata
+      sizeGB: 5
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: MOODLE_ADMIN_USER
+        value: admin
+      - key: MOODLE_ADMIN_EMAIL
+        sync: false
+      - key: MOODLE_ADMIN_PASSWORD
+        sync: false
+      - key: MOODLE_SITE_NAME
+        value: LMS Analysis Test Site
+      - key: MOODLE_DB_HOST
+        fromDatabase:
+          name: lms-analysis-postgres
+          property: host
+      - key: MOODLE_DB_NAME
+        fromDatabase:
+          name: lms-analysis-postgres
+          property: database
+      - key: MOODLE_DB_USER
+        fromDatabase:
+          name: lms-analysis-postgres
+          property: user
+      - key: MOODLE_DB_PASSWORD
+        fromDatabase:
+          name: lms-analysis-postgres
+          property: password
+      - key: MOODLE_DB_PORT
+        value: "5432"
+databases:
+  - name: lms-analysis-postgres
+    plan: 0.1c-256mb
+    region: virginia
+    postgresMajorVersion: "17"
+    databaseName: moodle
+    user: moodle
+    diskSizeGB: 5
+    ipAllowList: []
