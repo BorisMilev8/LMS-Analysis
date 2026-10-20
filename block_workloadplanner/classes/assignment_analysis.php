@@ -17,6 +17,9 @@ class assignment_analysis {
     /** Resolve server-side calendar ownership and module visibility; never trust a submitted assignment ID. */
     public static function source(int $eventid): array {
         global $DB, $CFG, $USER;
+        if (!isloggedin() || isguestuser()) {
+            throw new \require_login_exception();
+        }
         $events = planner::activities();
         if (!isset($events[$eventid])) {
             throw new \moodle_exception('unavailable', 'block_workloadplanner');
@@ -28,7 +31,8 @@ class assignment_analysis {
         $cm = get_coursemodule_from_instance('assign', $event->instance, $event->courseid, false, MUST_EXIST);
         $course = get_course($event->courseid);
         $context = \context_module::instance($cm->id);
-        require_login($course, false, $cm);
+        // Calendar access already checks enrollment. This personal Dashboard page must not
+        // switch its course/theme after the calendar API has initialized the page renderer.
         require_capability('mod/assign:view', $context);
         require_capability('block/workloadplanner:analyze', $context);
         $info = get_fast_modinfo($course, $USER->id)->get_cm($cm->id);

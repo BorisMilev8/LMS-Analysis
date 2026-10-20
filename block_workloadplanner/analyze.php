@@ -5,12 +5,12 @@ if (isguestuser()) {
     throw new require_login_exception();
 }
 $eventid = required_param('eventid', PARAM_INT);
-$source = \block_workloadplanner\assignment_analysis::source($eventid);
-$PAGE->set_context($source['context']);
+$PAGE->set_context(context_user::instance($USER->id));
 $PAGE->set_url('/blocks/workloadplanner/analyze.php', ['eventid' => $eventid]);
 $PAGE->set_pagelayout('mydashboard');
 $PAGE->set_title(get_string('analyzeassignment', 'block_workloadplanner'));
 $PAGE->set_heading(get_string('pluginname', 'block_workloadplanner'));
+$source = \block_workloadplanner\assignment_analysis::source($eventid);
 $back = new moodle_url('/blocks/workloadplanner/view.php');
 $plans = \block_workloadplanner\planner::priorities();
 $draft = $SESSION->block_workloadplanner_draft ?? null;
