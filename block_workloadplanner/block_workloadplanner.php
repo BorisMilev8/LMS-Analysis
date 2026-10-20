@@ -7,6 +7,9 @@ class block_workloadplanner extends block_base {
     public function applicable_formats() {
         return ['all' => false, 'my' => true];
     }
+    public function has_config() {
+        return true;
+    }
     public function get_content() {
         if ($this->content !== null) {
             return $this->content;

@@ -17,6 +17,10 @@ class provider implements \core_privacy\local\metadata\provider,
             'reminderat' => 'privacy:metadata:reminderat',
             'timemodified' => 'privacy:metadata:timemodified',
         ], 'privacy:metadata:block_workloadplanner_plan');
+        $collection->add_external_location_link('aiprovider', [
+            'instructions' => 'privacy:metadata:aiinstructions',
+            'experience' => 'privacy:metadata:aiexperience',
+        ], 'privacy:metadata:aiprovider');
         return $collection;
     }
     public static function get_contexts_for_userid(int $userid): contextlist {

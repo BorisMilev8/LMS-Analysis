@@ -17,7 +17,7 @@ Targets Moodle 4.5 and PHP 8.1 or later. Compatibility with newer versions has n
 5. Enrol a student in two test courses with future-dated assignments or quizzes. Sign in as that student and open the planner.
 6. Set a priority and effort estimate, reopen the planner, and confirm it persists. Repeat using another student account to verify that priorities remain private.
 
-No separate API key, external service, JavaScript build, or modification of Moodle core is required.
+The core planner requires no API key, external service, JavaScript build, or modification of Moodle core. Optional AI analysis in 0.6.0 requires an administrator-configured Moodle AI provider.
 
 ## Upgrade from 0.1.0
 
@@ -62,3 +62,7 @@ Choose Action date (earliest first), Priority (highest first), or Estimated effo
 ## Render deployment
 
 See [Render setup](docs/RENDER.md) for the paid-service Blueprint, Docker image, initial admin setup and persistence details. The deployment files create a fresh site; local test data is not migrated automatically. No Render service has been provisioned by this commit.
+
+## Assignment analysis and workload warnings in 0.6.0
+
+Students can request an AI summary and effort range for an accessible Moodle assignment, review the suggested priority and estimate, and apply edited values to their existing planner. Existing values are replaced only after explicit confirmation; personal reminders are preserved. The integration uses Moodle 4.5's configured AI providers and requires point-of-use policy/text-transfer consent. It is disabled by default and never calls AI during a normal planner load. Weekly warnings flag estimated work above a site-configured threshold across all courses, regardless of filters. See [setup, data handling, rules and acceptance checks](docs/ASSIGNMENT_ANALYSIS.md). Live provider and browser acceptance testing remain pending; this does not add file upload, assignment solutions or native Moodle App support.

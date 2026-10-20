@@ -25,6 +25,18 @@ $events = \block_workloadplanner\planning_view::sort($events, $priorities, $sort
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'block_workloadplanner'));
 echo html_writer::tag('p', get_string('window', 'block_workloadplanner'));
+$threshold = \block_workloadplanner\assignment_analysis::threshold();
+$warnings = \block_workloadplanner\analysis_rules::warnings($allevents, $priorities,
+    \core_date::get_user_timezone_object(), $threshold);
+if ($warnings) {
+    echo $OUTPUT->heading(get_string('workloadwarnings', 'block_workloadplanner'), 3);
+    foreach ($warnings as $week) {
+        echo $OUTPUT->notification(get_string('workloadwarning', 'block_workloadplanner', (object)[
+            'week' => userdate($week['start'], get_string('strftimedate', 'langconfig')),
+            'minutes' => $week['minutes'], 'threshold' => $threshold, 'missing' => $week['unestimated'],
+        ]), 'warning');
+    }
+}
 $duereminders = \block_workloadplanner\reminders::due($allevents, $priorities, time());
 if ($duereminders) {
     echo $OUTPUT->heading(get_string('remindersheading', 'block_workloadplanner'), 3);
@@ -99,7 +111,7 @@ if (!$allevents) {
         $table = new html_table();
         $table->head = array_map(function($key) {
             return get_string($key, 'block_workloadplanner');
-        }, ['activity', 'course', 'date', 'priority', 'effortminutes']);
+        }, ['activity', 'course', 'date', 'priority', 'effortminutes', 'assignmentanalysis']);
         foreach ($events as $event) {
             $savedpriority = (int)($priorities[$event->id]->priority ?? 0);
             $effort = (int)($priorities[$event->id]->effortminutes ?? 0);
@@ -110,6 +122,9 @@ if (!$allevents) {
                 get_string('priority' . $savedpriority, 'block_workloadplanner') . ' ' .
                     html_writer::link($edit, get_string('editpriority', 'block_workloadplanner')),
                 $effort > 0 ? (string)$effort : get_string('noestimate', 'block_workloadplanner'),
+                ($event->modulename ?? '') === 'assign'
+                    ? html_writer::link(new moodle_url('/blocks/workloadplanner/analyze.php', ['eventid' => $event->id]),
+                        get_string('analyzeassignment', 'block_workloadplanner')) : '-',
             ];
         }
         echo html_writer::start_div('table-responsive');

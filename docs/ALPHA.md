@@ -29,6 +29,10 @@ Ten of ten planned user features have code (100% by equal feature count). Six in
 - Concurrency target: five independent student sessions. Define severe degradation as core actions consistently exceeding three seconds in the agreed local test setup. Result: not measured.
 - Record Moodle/PHP versions, hardware, dataset, session duration, concurrency and observed response times alongside all results.
 
+## Version 0.6.0 candidate
+
+AI assignment summaries/effort ranges, reviewed priority suggestions, and all-course weekly workload warnings have implementation code. These additions expand the historical feature inventory above; they do not establish a completion percentage against an approved requirements baseline. See [setup, limitations and acceptance checks](ASSIGNMENT_ANALYSIS.md). AI is disabled until a provider is configured. Live provider/browser verification, stability and concurrency measurements remain pending. Offline tests do not establish AI estimation accuracy.
+
 ## Known scope limits
 
 Only future actionable calendar activities are shown, for 90 days. The planner is not a complete assignment inventory: undated work, some external-tool work, completed activities, overdue activities and activities unavailable to the student may not appear. Action dates are not universally assignment due dates. Priorities belong to a calendar event ID and may need re-entry if that event is recreated. Records for removed events are retained until the user data is deleted or the plugin is uninstalled. Reminders appear only when the planner is opened; background delivery is not included. Weekly totals group estimates by action dates; they do not allocate study time or guarantee a complete workload forecast. Calendar retrieval is capped at four pages of 50 events. Official Moodle plugin directory submission and marketplace review have not occurred.

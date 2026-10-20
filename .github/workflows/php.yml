@@ -21,6 +21,10 @@ jobs:
         run: php tests/reminders_test.php
       - name: Test planner sorting
         run: php tests/sorting_test.php
+      - name: Test AI response validation, priority suggestions and workload warnings
+        run: |
+          php tests/analysis_test.php
+          php tests/analysis_service_test.php
       - name: Build installable plugin ZIP
         run: |
           mkdir -p build

@@ -87,4 +87,51 @@ final class planner_test extends \advanced_testcase {
         $this->expectException(\invalid_parameter_exception::class);
         planner::save($eventid, 0, 0, time() + 2 * DAYSECS);
     }
+
+    public function test_assignment_analysis_source_and_access(): void {
+        global $DB;
+        [$first, $second, $eventid] = $this->fixture();
+        $event = $DB->get_record('event', ['id' => $eventid], '*', MUST_EXIST);
+        $DB->set_field('assign', 'intro', '<p>Write a 1000-word report.</p>', ['id' => $event->instance]);
+        $source = assignment_analysis::source($eventid);
+        $this->assertSame('Write a 1000-word report.', $source['instructions']);
+        $this->assertSame(CONTEXT_MODULE, $source['context']->contextlevel);
+        $this->assertArrayHasKey($eventid, $source['events']);
+        $this->setUser($this->getDataGenerator()->create_user());
+        $this->expectException(\moodle_exception::class);
+        assignment_analysis::source($eventid);
+    }
+
+    public function test_hidden_assignment_instructions_cannot_be_analyzed(): void {
+        global $DB;
+        [$first, $second, $eventid] = $this->fixture();
+        $event = $DB->get_record('event', ['id' => $eventid], '*', MUST_EXIST);
+        $DB->set_field('assign', 'alwaysshowdescription', 0, ['id' => $event->instance]);
+        $DB->set_field('assign', 'allowsubmissionsfromdate', time() + 3600, ['id' => $event->instance]);
+        $this->expectException(\moodle_exception::class);
+        assignment_analysis::source($eventid);
+    }
+
+    public function test_analysis_disabled_by_default_and_threshold_fallback(): void {
+        $this->resetAfterTest();
+        $this->assertFalse(assignment_analysis::available());
+        $this->assertSame(600, assignment_analysis::threshold());
+        set_config('weeklythreshold', 120, 'block_workloadplanner');
+        $this->assertSame(120, assignment_analysis::threshold());
+        set_config('weeklythreshold', -5, 'block_workloadplanner');
+        $this->assertSame(600, assignment_analysis::threshold());
+    }
+
+    public function test_analysis_rejected_without_changing_existing_plan(): void {
+        [$first, $second, $eventid] = $this->fixture();
+        planner::save($eventid, 3, 120);
+        try {
+            assignment_analysis::generate('Report', 'Write a report.', 'some', \context_user::instance($first->id)->id);
+            $this->fail('Disabled analysis must not call a provider');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('analysisunavailable', $e->errorcode);
+        }
+        $this->assertEquals(120, planner::priorities()[$eventid]->effortminutes);
+        $this->assertEquals(3, planner::priorities()[$eventid]->priority);
+    }
 }
