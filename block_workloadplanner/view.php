@@ -111,7 +111,7 @@ if (!$allevents) {
         $table = new html_table();
         $table->head = array_map(function($key) {
             return get_string($key, 'block_workloadplanner');
-        }, ['activity', 'course', 'date', 'priority', 'effortminutes', 'assignmentanalysis']);
+        }, ['activity', 'course', 'date', 'priority', 'effortminutes', 'assignmentdetails', 'assignmentanalysis']);
         foreach ($events as $event) {
             $savedpriority = (int)($priorities[$event->id]->priority ?? 0);
             $effort = (int)($priorities[$event->id]->effortminutes ?? 0);
@@ -122,6 +122,9 @@ if (!$allevents) {
                 get_string('priority' . $savedpriority, 'block_workloadplanner') . ' ' .
                     html_writer::link($edit, get_string('editpriority', 'block_workloadplanner')),
                 $effort > 0 ? (string)$effort : get_string('noestimate', 'block_workloadplanner'),
+                ($event->modulename ?? '') === 'assign'
+                    ? html_writer::link(new moodle_url('/blocks/workloadplanner/details.php', ['eventid' => $event->id]),
+                        get_string('viewdetails', 'block_workloadplanner')) : '-',
                 ($event->modulename ?? '') === 'assign'
                     ? html_writer::link(new moodle_url('/blocks/workloadplanner/analyze.php', ['eventid' => $event->id]),
                         get_string('analyzeassignment', 'block_workloadplanner')) : '-',

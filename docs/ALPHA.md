@@ -64,3 +64,24 @@ Standalone CI covers DST fallback, local week boundaries, year boundaries, unkno
 ## Version 0.4.0 reminder acceptance
 
 All ten planned features now have implementation code; verified overall completion is still unknown. Reminder timing checks run in CI. Test upgrade from 0.3.0, reminder-only persistence, current-user isolation, disabling reminders, timezone display and rejection of times after the action date in Moodle. Reminders require opening the planner and do not send email/push. Removed, completed or no-longer-upcoming activities cannot generate a visible reminder. Earlier version inventory figures above are historical snapshots.
+
+
+## Version 0.7.0: R4 assignment details
+
+Assignment rows now offer **View details** with the title, course, formatted instructor instructions,
+calendar action date, and a link to the original Moodle assignment. This page does not require an AI
+provider or permission to analyze assignments. Unreleased instructions remain hidden. Attachments,
+submission deadlines and extensions should be checked on the original assignment page; the calendar
+action date is not presented as the final submission deadline. The existing upcoming-calendar window
+and visibility limits still apply. No additional personal data is saved.
+
+Moodle integration tests cover access without AI permission, instruction release rules, hidden modules
+and unenrolled users. These new tests require an initialized Moodle environment. Manual acceptance:
+
+- As student1, open View details and compare the title, course and formatted instructions with Moodle.
+- Follow the original assignment link and the return-to-planner link.
+- Check an assignment with no instructions and one whose instructions are not released yet.
+- Confirm student2 and an unenrolled account cannot open assignments they cannot access.
+- Confirm AI analysis still loads instructions and saves an approved estimate after this shared-access refactor.
+
+R4 acceptance remains pending until these checks run on the installed Moodle site.

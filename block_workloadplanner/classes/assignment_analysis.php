@@ -16,31 +16,10 @@ class assignment_analysis {
 
     /** Resolve server-side calendar ownership and module visibility; never trust a submitted assignment ID. */
     public static function source(int $eventid): array {
-        global $DB, $CFG, $USER;
-        if (!isloggedin() || isguestuser()) {
-            throw new \require_login_exception();
-        }
-        $events = planner::activities();
-        if (!isset($events[$eventid])) {
-            throw new \moodle_exception('unavailable', 'block_workloadplanner');
-        }
-        $event = $DB->get_record('event', ['id' => $eventid, 'modulename' => 'assign'], '*', MUST_EXIST);
-        if ((int)$event->courseid !== (int)$events[$eventid]->course->id) {
-            throw new \moodle_exception('unavailable', 'block_workloadplanner');
-        }
-        $cm = get_coursemodule_from_instance('assign', $event->instance, $event->courseid, false, MUST_EXIST);
-        $course = get_course($event->courseid);
-        $context = \context_module::instance($cm->id);
-        // Calendar access already checks enrollment. This personal Dashboard page must not
-        // switch its course/theme after the calendar API has initialized the page renderer.
-        require_capability('mod/assign:view', $context);
+        $details = assignment_details::load($eventid);
+        $context = $details['context'];
         require_capability('block/workloadplanner:analyze', $context);
-        $info = get_fast_modinfo($course, $USER->id)->get_cm($cm->id);
-        if (!$info->uservisible) {
-            throw new \moodle_exception('unavailable', 'block_workloadplanner');
-        }
-        require_once($CFG->dirroot . '/mod/assign/locallib.php');
-        $assignment = new \assign($context, $cm, $course);
+        $assignment = $details['assignment'];
         if (!$assignment->show_intro()) {
             throw new \moodle_exception('instructionsunavailable', 'block_workloadplanner');
         }
@@ -49,7 +28,7 @@ class assignment_analysis {
         $instructions = trim(html_to_text($instance->intro, 0, false));
         $title = trim(html_to_text($instance->name, 0, false));
         return ['title' => $title, 'instructions' => $instructions, 'context' => $context,
-            'event' => $events[$eventid], 'events' => $events,
+            'event' => $details['event'], 'events' => $details['events'],
             'hash' => hash('sha256', $title . "\n" . $instructions)];
     }
 

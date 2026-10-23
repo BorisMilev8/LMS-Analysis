@@ -134,4 +134,50 @@ final class planner_test extends \advanced_testcase {
         $this->assertEquals(120, planner::priorities()[$eventid]->effortminutes);
         $this->assertEquals(3, planner::priorities()[$eventid]->priority);
     }
+
+    public function test_assignment_details_do_not_require_ai_access(): void {
+        global $DB;
+        [$first, $second, $eventid] = $this->fixture();
+        $event = $DB->get_record('event', ['id' => $eventid], '*', MUST_EXIST);
+        $DB->set_field('assign', 'intro', '<p>Read the rubric.</p>', ['id' => $event->instance]);
+        $studentrole = $DB->get_field('role', 'id', ['shortname' => 'student'], MUST_EXIST);
+        assign_capability('block/workloadplanner:analyze', CAP_PROHIBIT, $studentrole,
+            \context_course::instance($event->courseid)->id);
+        accesslib_clear_all_caches_for_unit_testing();
+        $details = assignment_details::load($eventid);
+        $this->assertFalse(has_capability('block/workloadplanner:analyze', $details['context']));
+        $this->assertSame((int)$event->courseid, (int)$details['course']->id);
+        $this->assertSame((int)$event->instance, (int)$details['assignment']->get_instance()->id);
+        $this->assertSame('<p>Read the rubric.</p>', $details['assignment']->get_instance()->intro);
+        $this->expectException(\required_capability_exception::class);
+        assignment_analysis::source($eventid);
+    }
+
+    public function test_assignment_details_preserve_instruction_release_rules(): void {
+        global $DB;
+        [$first, $second, $eventid] = $this->fixture();
+        $event = $DB->get_record('event', ['id' => $eventid], '*', MUST_EXIST);
+        $DB->set_field('assign', 'alwaysshowdescription', 0, ['id' => $event->instance]);
+        $DB->set_field('assign', 'allowsubmissionsfromdate', time() + 3600, ['id' => $event->instance]);
+        $details = assignment_details::load($eventid);
+        $this->assertFalse($details['assignment']->show_intro());
+    }
+
+    public function test_assignment_details_reject_unenrolled_user(): void {
+        [$first, $second, $eventid] = $this->fixture();
+        $this->setUser($this->getDataGenerator()->create_user());
+        $this->expectException(\moodle_exception::class);
+        assignment_details::load($eventid);
+    }
+
+    public function test_assignment_details_reject_hidden_module(): void {
+        global $DB;
+        [$first, $second, $eventid] = $this->fixture();
+        $event = $DB->get_record('event', ['id' => $eventid], '*', MUST_EXIST);
+        $cm = get_coursemodule_from_instance('assign', $event->instance);
+        set_coursemodule_visible($cm->id, 0);
+        $this->expectException(\moodle_exception::class);
+        assignment_details::load($eventid);
+    }
+
 }

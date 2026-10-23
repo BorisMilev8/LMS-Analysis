@@ -94,3 +94,13 @@ $string['workloadwarning'] = 'Week beginning {$a->week}: {$a->minutes} estimated
 $string['privacy:metadata:aiprovider'] = 'On an explicit analysis request, Moodle sends assignment planning text to its configured external AI provider. Moodle\'s core AI subsystem records prompts, responses and policy acceptance under its own privacy provider. The planner keeps one review draft in the user session for up to 30 minutes; only the reviewed priority and effort are persisted in its planning table.';
 $string['privacy:metadata:aiinstructions'] = 'The assignment title and the instructions the user reviews or edits before submitting.';
 $string['privacy:metadata:aiexperience'] = 'The user-selected experience category used to guide an effort estimate.';
+
+$string['assignmentdetails'] = 'Assignment details';
+$string['viewdetails'] = 'View details';
+$string['assignmentinstructions'] = 'Assignment instructions';
+$string['noinstructions'] = 'No written instructions have been added. Open the original assignment to check for files or further requirements.';
+$string['instructionsnotreleased'] = 'The instructor has not released these instructions yet.';
+$string['planneractiondate'] = 'Calendar action date';
+$string['actiondateexplanation'] = 'This is the date shown in the planner. Open the original assignment to check the submission deadline, extensions and attached files.';
+$string['openassignment'] = 'Open original Moodle assignment';
+$string['backtoplanner'] = 'Back to workload planner';
