@@ -85,3 +85,19 @@ and unenrolled users. These new tests require an initialized Moodle environment.
 - Confirm AI analysis still loads instructions and saves an approved estimate after this shared-access refactor.
 
 R4 acceptance remains pending until these checks run on the installed Moodle site.
+
+
+## Version 0.8.0: R5 next-seven-days filter
+
+The Date range selector offers All upcoming dates (default) and Next 7 days. The latter keeps
+calendar action dates from the current instant through exactly 168 hours later, inclusive, rather
+than the current Monday-to-Sunday calendar week. Course and priority filters and sorting compose
+with the date filter; displayed totals and weekly summaries use the filtered activities. Reset
+filters restores the default. Reminder banners and workload warnings continue to use all accessible
+upcoming activities, with an explanatory note. Saved plans are unchanged.
+
+Dates still come from Moodle's actionable calendar feed, not a comprehensive query of assignment
+submission deadlines or extensions. Existing access and 200-event/90-day limits remain. Standalone
+tests cover boundaries, empty results, combined filters, totals, sorting, no mutations and DST.
+Manual R5 acceptance remains pending: test events inside/outside seven days, combine filters,
+refresh to retain the selection, reset, and check an empty result as student1.

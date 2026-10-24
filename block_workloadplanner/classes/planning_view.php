@@ -10,6 +10,16 @@ class planning_view {
                 && ($priority === -1 || $savedpriority === $priority);
         });
     }
+    /** Keep upcoming calendar action dates in the inclusive rolling 168-hour window.
+     * Filtering retains event keys and does not change saved plans or module permissions.
+     */
+    public static function next_seven_days(array $events, int $now): array {
+        $until = $now + 7 * 24 * 60 * 60;
+        return array_filter($events, function($event) use ($now, $until) {
+            $date = (int)$event->timesort;
+            return $date >= $now && $date <= $until;
+        });
+    }
     /** Summarize only the visible result set; an unestimated activity is not zero work. */
     public static function summary(array $events, array $plans): array {
         $minutes = 0;

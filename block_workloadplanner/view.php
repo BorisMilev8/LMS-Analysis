@@ -7,6 +7,10 @@ if (isguestuser()) {
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $priority = optional_param('priority', -1, PARAM_INT);
 $sort = optional_param('sort', 'deadline', PARAM_ALPHA);
+$window = optional_param('window', 'all', PARAM_ALPHA);
+if (!in_array($window, ['all', 'week'], true)) {
+    throw new invalid_parameter_exception('Invalid planner date range');
+}
 if (!in_array($sort, ['deadline', 'priority', 'effort'], true)) {
     throw new invalid_parameter_exception('Invalid planner sort');
 }
@@ -14,13 +18,17 @@ if ($courseid < 0 || $priority < -1 || $priority > 3) {
     throw new invalid_parameter_exception('Invalid planner filter');
 }
 $PAGE->set_context(context_user::instance($USER->id));
-$PAGE->set_url('/blocks/workloadplanner/view.php', ['courseid' => $courseid, 'priority' => $priority, 'sort' => $sort]);
+$PAGE->set_url('/blocks/workloadplanner/view.php',
+    ['courseid' => $courseid, 'priority' => $priority, 'sort' => $sort, 'window' => $window]);
 $PAGE->set_pagelayout('mydashboard');
 $PAGE->set_title(get_string('pluginname', 'block_workloadplanner'));
 $PAGE->set_heading(get_string('pluginname', 'block_workloadplanner'));
 $allevents = \block_workloadplanner\planner::activities();
 $priorities = \block_workloadplanner\planner::priorities();
 $events = \block_workloadplanner\planning_view::filter($allevents, $priorities, $courseid, $priority);
+if ($window === 'week') {
+    $events = \block_workloadplanner\planning_view::next_seven_days($events, time());
+}
 $events = \block_workloadplanner\planning_view::sort($events, $priorities, $sort);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'block_workloadplanner'));
@@ -79,11 +87,19 @@ if (!$allevents) {
     }
     echo html_writer::label(get_string('sortby', 'block_workloadplanner'), 'planner-sort');
     echo html_writer::select($sortoptions, 'sort', $sort, false, ['id' => 'planner-sort']);
+    echo html_writer::label(get_string('daterange', 'block_workloadplanner'), 'planner-window');
+    echo html_writer::select([
+        'all' => get_string('alldates', 'block_workloadplanner'),
+        'week' => get_string('nextsevendays', 'block_workloadplanner'),
+    ], 'window', $window, false, ['id' => 'planner-window']);
     echo html_writer::tag('button', get_string('filter', 'block_workloadplanner'),
         ['type' => 'submit', 'class' => 'btn btn-primary ml-2']);
     echo html_writer::link(new moodle_url('/blocks/workloadplanner/view.php'),
         get_string('resetfilters', 'block_workloadplanner'), ['class' => 'ml-2']);
     echo html_writer::end_tag('form');
+    if ($window === 'week') {
+        echo html_writer::tag('p', get_string('nextsevendaysnote', 'block_workloadplanner'));
+    }
     $summary = \block_workloadplanner\planning_view::summary($events, $priorities);
     echo html_writer::tag('p', get_string('summary', 'block_workloadplanner', (object)$summary));
     if (!$events) {

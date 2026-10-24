@@ -104,3 +104,8 @@ $string['planneractiondate'] = 'Calendar action date';
 $string['actiondateexplanation'] = 'This is the date shown in the planner. Open the original assignment to check the submission deadline, extensions and attached files.';
 $string['openassignment'] = 'Open original Moodle assignment';
 $string['backtoplanner'] = 'Back to workload planner';
+
+$string['daterange'] = 'Date range';
+$string['alldates'] = 'All upcoming dates';
+$string['nextsevendays'] = 'Next 7 days';
+$string['nextsevendaysnote'] = 'Showing calendar action dates from now through the next 168 hours. Check the original assignment for submission deadlines and extensions. Workload warnings and reminders still consider all upcoming activities.';
