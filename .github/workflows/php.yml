@@ -15,6 +15,8 @@ jobs:
         run: find block_workloadplanner -name '*.php' -print0 | xargs -0 -n 1 php -l
       - name: Test filtering and visible effort summaries
         run: php tests/planning_view_test.php
+      - name: Test refresh success, empty results and safe failures
+        run: php tests/refresh_test.php
       - name: Test weekly grouping and timezone boundaries
         run: php tests/weekly_test.php
       - name: Test personal reminders

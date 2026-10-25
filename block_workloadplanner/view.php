@@ -23,8 +23,20 @@ $PAGE->set_url('/blocks/workloadplanner/view.php',
 $PAGE->set_pagelayout('mydashboard');
 $PAGE->set_title(get_string('pluginname', 'block_workloadplanner'));
 $PAGE->set_heading(get_string('pluginname', 'block_workloadplanner'));
-$allevents = \block_workloadplanner\planner::activities();
-$priorities = \block_workloadplanner\planner::priorities();
+$refresh = \block_workloadplanner\refresh_result::load(
+    [\block_workloadplanner\planner::class, 'activities'],
+    [\block_workloadplanner\planner::class, 'priorities']);
+if (!$refresh['success']) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading(get_string('pluginname', 'block_workloadplanner'));
+    echo $OUTPUT->notification(get_string('refreshfailed', 'block_workloadplanner'), 'error');
+    echo html_writer::tag('p', html_writer::link($PAGE->url,
+        get_string('retryrefresh', 'block_workloadplanner'), ['class' => 'btn btn-primary']));
+    echo $OUTPUT->footer();
+    exit;
+}
+$allevents = $refresh['events'];
+$priorities = $refresh['plans'];
 $events = \block_workloadplanner\planning_view::filter($allevents, $priorities, $courseid, $priority);
 if ($window === 'week') {
     $events = \block_workloadplanner\planning_view::next_seven_days($events, time());
@@ -32,6 +44,9 @@ if ($window === 'week') {
 $events = \block_workloadplanner\planning_view::sort($events, $priorities, $sort);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'block_workloadplanner'));
+echo html_writer::tag('p', get_string('lastrefreshed', 'block_workloadplanner',
+    userdate($refresh['refreshedat'])));
+echo html_writer::tag('p', get_string('refreshnote', 'block_workloadplanner'));
 echo html_writer::tag('p', get_string('window', 'block_workloadplanner'));
 $threshold = \block_workloadplanner\assignment_analysis::threshold();
 $warnings = \block_workloadplanner\analysis_rules::warnings($allevents, $priorities,

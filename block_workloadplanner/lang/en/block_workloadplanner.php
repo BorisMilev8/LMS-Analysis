@@ -109,3 +109,8 @@ $string['daterange'] = 'Date range';
 $string['alldates'] = 'All upcoming dates';
 $string['nextsevendays'] = 'Next 7 days';
 $string['nextsevendaysnote'] = 'Showing calendar action dates from now through the next 168 hours. Check the original assignment for submission deadlines and extensions. Workload warnings and reminders still consider all upcoming activities.';
+
+$string['lastrefreshed'] = 'Last refreshed: {$a}';
+$string['refreshnote'] = 'This is when the planner successfully retrieved your current Moodle activities and saved planning details, not when an instructor last changed an assignment. Reload this page to refresh.';
+$string['refreshfailed'] = 'The planner could not load your activities or saved planning details. Your saved priorities, effort estimates and reminders have not been changed. Try again; if the problem continues, contact your site administrator.';
+$string['retryrefresh'] = 'Try loading again';
