@@ -51,6 +51,10 @@ Plugin source is licensed under GNU GPL version 3 or later, consistent with Mood
 
 Version 0.3.0 adds weekly summaries without changing the database. If upgrading directly from 0.1.0, the 0.2.0 effort-field migration still runs.
 
+## Overdue assignments in version 0.11.0
+
+The planner now includes a highlighted **Overdue unfinished assignments** section using each student's effective submission deadline, including overrides and individual extensions. Submitted work and personal Completed items are excluded. Course/priority filters apply, while Next 7 days affects only upcoming work. Past work stays separate from upcoming weekly effort totals. See [scope, installation and acceptance checks](docs/OVERDUE.md) for the 90-day lookback, 200-module scan limit, supported online assignments and current verification limits.
+
 ## Personal progress in version 0.10.0
 
 Open **Edit planning details** and choose **My progress**: Not started, In progress, or Completed. The list displays your saved status. Progress is private to your account and does not submit work, change grades, or change Moodle activity completion. Completed entries remain in the feed, reminders and workload totals while Moodle still returns them; this feature does not add an overdue/history view.

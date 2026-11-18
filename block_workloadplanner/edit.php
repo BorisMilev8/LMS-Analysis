@@ -11,11 +11,8 @@ $PAGE->set_url('/blocks/workloadplanner/edit.php', ['eventid' => $eventid]);
 $PAGE->set_pagelayout('mydashboard');
 $PAGE->set_title(get_string('editpriority', 'block_workloadplanner'));
 $PAGE->set_heading(get_string('pluginname', 'block_workloadplanner'));
-$events = \block_workloadplanner\planner::activities();
-if (!isset($events[$eventid])) {
-    throw new moodle_exception('unavailable', 'block_workloadplanner');
-}
-$form = new \block_workloadplanner\form\priority($PAGE->url, ['actiondate' => $events[$eventid]->timesort]);
+$event = \block_workloadplanner\planner::activity($eventid);
+$form = new \block_workloadplanner\form\priority($PAGE->url, ['actiondate' => $event->timesort]);
 if ($form->is_cancelled()) {
     redirect($url);
 } else if ($data = $form->get_data()) {
@@ -37,6 +34,6 @@ $form->set_data([
     'progress' => $priorities[$eventid]->progress ?? 0,
 ]);
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($events[$eventid]->name));
+echo $OUTPUT->heading(format_string($event->name));
 $form->display();
 echo $OUTPUT->footer();

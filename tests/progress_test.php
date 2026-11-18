@@ -54,6 +54,11 @@ $DB = new class {
 };
 require_once(__DIR__ . '/../block_workloadplanner/classes/reminders.php');
 require_once(__DIR__ . '/../block_workloadplanner/classes/planner.php');
+// This suite isolates persistence; no overdue modules exist in its calendar fixture.
+class_alias('empty_overdue_fixture', 'block_workloadplanner\overdue_assignments');
+class empty_overdue_fixture {
+    public static function read($plans) { return ['items' => []]; }
+}
 use block_workloadplanner\planner;
 $checks = 0;
 function check($actual, $expected, $message) {

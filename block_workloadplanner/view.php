@@ -25,7 +25,8 @@ $PAGE->set_title(get_string('pluginname', 'block_workloadplanner'));
 $PAGE->set_heading(get_string('pluginname', 'block_workloadplanner'));
 $refresh = \block_workloadplanner\refresh_result::load(
     [\block_workloadplanner\planner::class, 'activities'],
-    [\block_workloadplanner\planner::class, 'priorities']);
+    [\block_workloadplanner\planner::class, 'priorities'],
+    [\block_workloadplanner\overdue_assignments::class, 'read']);
 if (!$refresh['success']) {
     echo $OUTPUT->header();
     echo $OUTPUT->heading(get_string('pluginname', 'block_workloadplanner'));
@@ -37,6 +38,10 @@ if (!$refresh['success']) {
 }
 $allevents = $refresh['events'];
 $priorities = $refresh['plans'];
+$pastitems = $refresh['overdue']['items'];
+$overdue = \block_workloadplanner\overdue_assignments::unfinished($pastitems, $priorities);
+$overdue = \block_workloadplanner\planning_view::filter($overdue, $priorities, $courseid, $priority);
+$overdue = \block_workloadplanner\planning_view::sort($overdue, $priorities, $sort);
 $events = \block_workloadplanner\planning_view::filter($allevents, $priorities, $courseid, $priority);
 if ($window === 'week') {
     $events = \block_workloadplanner\planning_view::next_seven_days($events, time());
@@ -48,6 +53,34 @@ echo html_writer::tag('p', get_string('lastrefreshed', 'block_workloadplanner',
     userdate($refresh['refreshedat'])));
 echo html_writer::tag('p', get_string('refreshnote', 'block_workloadplanner'));
 echo html_writer::tag('p', get_string('window', 'block_workloadplanner'));
+echo $OUTPUT->heading(get_string('overdueheading', 'block_workloadplanner'), 3);
+echo html_writer::tag('p', get_string('overduenote', 'block_workloadplanner'));
+if ($refresh['overdue']['limited']) {
+    echo $OUTPUT->notification(get_string('overduelimited', 'block_workloadplanner'), 'warning');
+}
+if (!$overdue) {
+    echo html_writer::tag('p', get_string('overdueempty', 'block_workloadplanner'));
+} else {
+    $pasttable = new html_table();
+    $pasttable->head = array_map(function($key) {
+        return get_string($key, 'block_workloadplanner');
+    }, ['activity', 'course', 'overduedate', 'overduestatus', 'progress', 'editpriority']);
+    foreach ($overdue as $item) {
+        $row = new html_table_row([
+            html_writer::link(new moodle_url($item->action->url), format_string($item->name)),
+            format_string($item->course->fullname), userdate($item->timesort),
+            get_string('overduelabel', 'block_workloadplanner'),
+            get_string('progress' . (int)($priorities[$item->id]->progress ?? 0), 'block_workloadplanner'),
+            html_writer::link(new moodle_url('/blocks/workloadplanner/edit.php', ['eventid' => $item->id]),
+                get_string('editpriority', 'block_workloadplanner')),
+        ]);
+        $row->attributes['class'] = 'table-warning';
+        $pasttable->data[] = $row;
+    }
+    echo html_writer::start_div('table-responsive');
+    echo html_writer::table($pasttable);
+    echo html_writer::end_div();
+}
 $threshold = \block_workloadplanner\assignment_analysis::threshold();
 $warnings = \block_workloadplanner\analysis_rules::warnings($allevents, $priorities,
     \core_date::get_user_timezone_object(), $threshold);
@@ -79,11 +112,11 @@ if ($duereminders) {
     echo html_writer::table($remindertable);
     echo html_writer::end_div();
 }
-if (!$allevents) {
+if (!$allevents && !$pastitems) {
     echo $OUTPUT->notification(get_string('empty', 'block_workloadplanner'), 'info');
 } else {
     $courses = [0 => get_string('allcourses', 'block_workloadplanner')];
-    foreach ($allevents as $event) {
+    foreach ($allevents + $pastitems as $event) {
         $courses[$event->course->id] = format_string($event->course->fullname);
     }
     $priorityoptions = [-1 => get_string('allpriorities', 'block_workloadplanner')];

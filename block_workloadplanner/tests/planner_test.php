@@ -3,6 +3,131 @@ namespace block_workloadplanner;
 defined('MOODLE_INTERNAL') || die();
 /** Run inside an initialized Moodle 4.5 PHPUnit environment. */
 final class planner_test extends \advanced_testcase {
+    private function overdue_fixture(): array {
+        global $DB;
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $first = $generator->create_user();
+        $second = $generator->create_user();
+        $generator->enrol_user($first->id, $course->id, 'student');
+        $generator->enrol_user($second->id, $course->id, 'student');
+        $assignment = $generator->create_module('assign', [
+            'course' => $course->id, 'duedate' => time() - 3600,
+            'assignsubmission_file_enabled' => 1,
+        ]);
+        $eventid = $DB->get_field('event', 'id', ['modulename' => 'assign',
+            'instance' => $assignment->id, 'eventtype' => 'due', 'userid' => 0, 'groupid' => 0], MUST_EXIST);
+        $this->setUser($first);
+        return [$first, $second, $assignment, (int)$eventid, $course];
+    }
+
+    public function test_overdue_edit_and_private_completed_state(): void {
+        global $DB;
+        [$first, $second, $assignment, $eventid] = $this->overdue_fixture();
+        $past = overdue_assignments::read([]);
+        $this->assertArrayHasKey($eventid, $past['items']);
+        $this->assertEquals($assignment->duedate, $past['items'][$eventid]->timesort);
+        planner::save($eventid, 3, 90, 0, 2);
+        $plans = planner::priorities();
+        $this->assertEmpty(overdue_assignments::unfinished(overdue_assignments::read($plans)['items'], $plans));
+        // A completed personal plan can still be resolved and reset, without submitting work.
+        planner::save($eventid, 3, null, null, 1);
+        $this->assertEquals(90, planner::priorities()[$eventid]->effortminutes);
+        $this->setUser($second);
+        $past = overdue_assignments::read(planner::priorities());
+        $this->assertArrayHasKey($eventid, overdue_assignments::unfinished($past['items'], planner::priorities()));
+        $this->assertFalse($DB->record_exists('assign_submission', ['assignment' => $assignment->id]));
+    }
+
+    public function test_overdue_honours_extensions_and_user_overrides(): void {
+        global $DB;
+        [$first, $second, $assignment, $eventid] = $this->overdue_fixture();
+        $DB->insert_record('assign_user_flags', (object)['assignment' => $assignment->id,
+            'userid' => $first->id, 'extensionduedate' => time() + DAYSECS]);
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+        $this->setUser($second);
+        $this->assertArrayHasKey($eventid, overdue_assignments::read([])['items']);
+        $overrideid = $DB->insert_record('assign_overrides', (object)['assignid' => $assignment->id,
+            'userid' => $second->id, 'duedate' => time() + 2 * DAYSECS]);
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+        $past = time() - 1800;
+        $DB->set_field('assign_overrides', 'duedate', $past, ['id' => $overrideid]);
+        $this->assertEquals($past, overdue_assignments::read([])['items'][$eventid]->timesort);
+    }
+
+    public function test_overdue_honours_group_override_and_user_precedence(): void {
+        global $DB;
+        [$first, $second, $assignment, $eventid, $course] = $this->overdue_fixture();
+        $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        groups_add_member($group->id, $first->id);
+        $DB->insert_record('assign_overrides', (object)['assignid' => $assignment->id,
+            'groupid' => $group->id, 'sortorder' => 1, 'duedate' => time() + DAYSECS]);
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+        $past = time() - 1800;
+        $DB->insert_record('assign_overrides', (object)['assignid' => $assignment->id,
+            'userid' => $first->id, 'duedate' => $past]);
+        $this->assertEquals($past, overdue_assignments::read([])['items'][$eventid]->timesort);
+    }
+
+    public function test_overdue_excludes_submitted_but_keeps_draft_and_reopened(): void {
+        global $DB;
+        [$first, $second, $assignment, $eventid] = $this->overdue_fixture();
+        $submissionid = $DB->insert_record('assign_submission', (object)[
+            'assignment' => $assignment->id, 'userid' => $first->id, 'groupid' => 0,
+            'timecreated' => time(), 'timemodified' => time(), 'status' => 'submitted',
+            'attemptnumber' => 0, 'latest' => 1,
+        ]);
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+        foreach (['draft', 'reopened'] as $status) {
+            $DB->set_field('assign_submission', 'status', $status, ['id' => $submissionid]);
+            $this->assertArrayHasKey($eventid, overdue_assignments::read([])['items']);
+        }
+    }
+
+    public function test_overdue_protects_hidden_restricted_and_unenrolled_access(): void {
+        global $DB, $CFG;
+        [$first, $second, $assignment, $eventid] = $this->overdue_fixture();
+        $CFG->enableavailability = 1;
+        set_coursemodule_visible($assignment->cmid, 0);
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+        set_coursemodule_visible($assignment->cmid, 1);
+        $DB->set_field('course_modules', 'availability', json_encode([
+            'op' => '&', 'c' => [['type' => 'date', 'd' => '>=', 't' => time() + DAYSECS]],
+            'showc' => [false],
+        ]), ['id' => $assignment->cmid]);
+        rebuild_course_cache($assignment->course, true);
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+        $this->setUser($this->getDataGenerator()->create_user());
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+        $this->expectException(\moodle_exception::class);
+        planner::save($eventid, 0, 0, 0, 2);
+    }
+
+    public function test_overdue_keeps_visible_closed_assignments_and_excludes_undated_work(): void {
+        global $DB;
+        [$first, $second, $assignment, $eventid] = $this->overdue_fixture();
+        $DB->set_field('assign', 'cutoffdate', time() - 60, ['id' => $assignment->id]);
+        $this->assertArrayHasKey($eventid, overdue_assignments::read([])['items']);
+        $DB->set_field('assign', 'duedate', 0, ['id' => $assignment->id]);
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+    }
+
+    public function test_overdue_excludes_group_submission_for_own_team(): void {
+        global $DB;
+        [$first, $second, $assignment, $eventid, $course] = $this->overdue_fixture();
+        $DB->set_field('assign', 'teamsubmission', 1, ['id' => $assignment->id]);
+        $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        groups_add_member($group->id, $first->id);
+        $this->assertArrayHasKey($eventid, overdue_assignments::read([])['items']);
+        $DB->insert_record('assign_submission', (object)[
+            'assignment' => $assignment->id, 'userid' => 0, 'groupid' => $group->id,
+            'timecreated' => time(), 'timemodified' => time(), 'status' => 'submitted',
+            'attemptnumber' => 0, 'latest' => 1,
+        ]);
+        $this->assertEmpty(overdue_assignments::read([])['items']);
+    }
+
     public function test_progress_only_record_is_private_and_can_be_reset(): void {
         [$first, $second, $eventid] = $this->fixture();
         planner::save($eventid, 0, 0, 0, 1);

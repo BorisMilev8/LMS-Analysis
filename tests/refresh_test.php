@@ -35,4 +35,15 @@ check($partial['success'], false, 'Personal-plan failure is reported');
 $retry = refresh_result::load(fn() => $events, fn() => $plans);
 check($retry['success'], true, 'A later successful retry recovers without cached failure');
 check(serialize([$events, $plans]), $before, 'Reads never mutate stored planning values');
+$past = ['items' => [7 => (object)['id' => 7]], 'limited' => true];
+$loaded = refresh_result::load(fn() => $events, fn() => $plans, function($actualplans) use ($plans, $past) {
+    check($actualplans, $plans, 'Overdue loading receives current private plans');
+    return $past;
+});
+check($loaded['overdue'], $past, 'Overdue results and scan limit retained');
+$failed = refresh_result::load(fn() => $events, fn() => $plans,
+    function() { throw new RuntimeException('private overdue query error'); });
+check($failed['success'], false, 'Overdue failure makes whole refresh fail');
+check($failed['events'], [], 'No partial upcoming list after overdue failure');
+check($failed['refreshedat'], null, 'No success timestamp after overdue failure');
 echo "$checks refresh behavior checks passed.\n";

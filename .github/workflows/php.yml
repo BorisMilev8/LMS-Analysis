@@ -23,6 +23,8 @@ jobs:
         run: php tests/reminders_test.php
       - name: Test private progress persistence and safe updates
         run: php tests/progress_test.php
+      - name: Test overdue access, deadlines and unfinished work
+        run: php tests/overdue_test.php
       - name: Test planner sorting
         run: php tests/sorting_test.php
       - name: Test AI response validation, priority suggestions and workload warnings

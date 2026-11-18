@@ -35,6 +35,19 @@ class planner {
         }
         return $events;
     }
+    /** Resolve a visible upcoming event or a permission-checked overdue assignment. */
+    public static function activity(int $eventid): object {
+        $events = self::activities();
+        if (isset($events[$eventid])) {
+            return $events[$eventid];
+        }
+        $overdue = overdue_assignments::read(self::priorities());
+        if (isset($overdue['items'][$eventid])) {
+            return $overdue['items'][$eventid];
+        }
+        throw new \moodle_exception('unavailable', 'block_workloadplanner');
+    }
+
     /** User IDs always come from the authenticated session, never from submitted data. */
     public static function priorities(): array {
         global $DB, $USER;
@@ -53,16 +66,13 @@ class planner {
         if ($progress !== null && ($progress < 0 || $progress > 2)) {
             throw new \invalid_parameter_exception('Invalid personal progress');
         }
-        $events = self::activities();
-        if (!isset($events[$eventid])) {
-            throw new \moodle_exception('unavailable', 'block_workloadplanner');
-        }
+        $event = self::activity($eventid);
         $conditions = ['userid' => $USER->id, 'eventid' => $eventid];
         $record = $DB->get_record('block_workloadplanner_plan', $conditions);
         $effortminutes = $effortminutes ?? (int)($record->effortminutes ?? 0);
         $reminderat = $reminderat ?? (int)($record->reminderat ?? 0);
         $progress = $progress ?? (int)($record->progress ?? 0);
-        if (!reminders::valid($reminderat, (int)$events[$eventid]->timesort)) {
+        if (!reminders::valid($reminderat, (int)$event->timesort)) {
             throw new \invalid_parameter_exception('Reminder must be on or before the activity action date');
         }
         if ($priority === 0 && $effortminutes === 0 && $reminderat === 0 && $progress === 0) {
