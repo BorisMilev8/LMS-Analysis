@@ -14,6 +14,14 @@ class priority extends \moodleform {
         }
         $mform->addElement('select', 'priority', get_string('priority', 'block_workloadplanner'), $options);
         $mform->setType('priority', PARAM_INT);
+        $progressoptions = [];
+        for ($i = 0; $i <= 2; $i++) {
+            $progressoptions[$i] = get_string('progress' . $i, 'block_workloadplanner');
+        }
+        $mform->addElement('select', 'progress', get_string('progress', 'block_workloadplanner'), $progressoptions);
+        $mform->setType('progress', PARAM_INT);
+        $mform->setDefault('progress', 0);
+        $mform->addHelpButton('progress', 'progress', 'block_workloadplanner');
         $mform->addElement('text', 'effortminutes', get_string('effortminutes', 'block_workloadplanner'));
         $mform->setType('effortminutes', PARAM_RAW_TRIMMED);
         $mform->setDefault('effortminutes', '0');
@@ -25,6 +33,9 @@ class priority extends \moodleform {
     }
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
+        if (!isset($data['progress']) || !in_array((string)$data['progress'], ['0', '1', '2'], true)) {
+            $errors['progress'] = get_string('invalidprogress', 'block_workloadplanner');
+        }
         if ($data['priority'] < 0 || $data['priority'] > 3) {
             $errors['priority'] = get_string('invalidpriority', 'block_workloadplanner');
         }

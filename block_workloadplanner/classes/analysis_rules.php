@@ -62,6 +62,7 @@ class analysis_rules {
         return hash('sha256', json_encode([
             (int)($plan->priority ?? 0), (int)($plan->effortminutes ?? 0),
             (int)($plan->reminderat ?? 0), (int)($plan->timemodified ?? 0),
+            (int)($plan->progress ?? 0),
         ]));
     }
 

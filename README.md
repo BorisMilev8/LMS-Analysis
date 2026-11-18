@@ -4,7 +4,7 @@ Boris Milev's SENG 701 development component. The LMS survey report and narrated
 
 ## Current implementation
 
-A Moodle Dashboard block opens a personal planner showing actionable calendar activities across enrolled, non-suspended courses for the next 90 days. Students can open the original activity and save Low, Medium, or High priorities and effort estimates in whole minutes. Filters select a course, priority, or both. Weekly summaries group action dates into Monday-to-Sunday weeks using the student's Moodle timezone. Each week shows activities, estimated minutes, missing estimates, and high-priority work. This describes work associated with action dates, not a scheduled study plan. The summary totals estimated minutes for the displayed activities and separately counts activities without an estimate. Selecting Not set and entering zero effort clears the planning record. Priorities belong to the logged-in user; instructor deadlines and grades are never modified.
+A Moodle Dashboard block opens a personal planner showing actionable calendar activities across enrolled, non-suspended courses for the next 90 days. Students can open the original activity and save Low, Medium, or High priorities and effort estimates in whole minutes. Filters select a course, priority, or both. Weekly summaries group action dates into Monday-to-Sunday weeks using the student's Moodle timezone. Each week shows activities, estimated minutes, missing estimates, and high-priority work. This describes work associated with action dates, not a scheduled study plan. The summary totals estimated minutes for the displayed activities and separately counts activities without an estimate. Resetting priority, effort, reminder and progress to their defaults clears the planning record. Priorities belong to the logged-in user; instructor deadlines and grades are never modified.
 
 Targets Moodle 4.5 and PHP 8.1 or later. Compatibility with newer versions has not been tested. This is an alpha implementation candidate, not a verified deployment or approved Moodle marketplace listing.
 
@@ -50,6 +50,14 @@ See [alpha checklist](docs/ALPHA.md) for scope, pending checks, and limitations.
 Plugin source is licensed under GNU GPL version 3 or later, consistent with Moodle. See https://www.gnu.org/licenses/gpl-3.0.html for the license terms.
 
 Version 0.3.0 adds weekly summaries without changing the database. If upgrading directly from 0.1.0, the 0.2.0 effort-field migration still runs.
+
+## Personal progress in version 0.10.0
+
+Open **Edit planning details** and choose **My progress**: Not started, In progress, or Completed. The list displays your saved status. Progress is private to your account and does not submit work, change grades, or change Moodle activity completion. Completed entries remain in the feed, reminders and workload totals while Moodle still returns them; this feature does not add an overdue/history view.
+
+Before updating, back up the database and Moodle files. Copy the new plugin files and run **Site administration > Notifications** (or the normal Moodle CLI upgrade). The upgrade adds `progress` with default zero (Not started), preserving existing plans. AI apply and priority-only updates preserve your progress. To remove a plan record, reset priority, effort, reminder and progress to their defaults.
+
+Acceptance still requires checking all three states after reload, two-student isolation, cancellation, and preservation of existing priorities, effort and reminders on the actual Moodle site. Standalone persistence checks use offline doubles; the Moodle integration suite checks real records in CI. Release maturity remains Alpha until beta acceptance is completed.
 
 ## Personal reminders in version 0.4.0
 

@@ -15,6 +15,7 @@ class provider implements \core_privacy\local\metadata\provider,
             'priority' => 'privacy:metadata:priority',
             'effortminutes' => 'privacy:metadata:effortminutes',
             'reminderat' => 'privacy:metadata:reminderat',
+            'progress' => 'privacy:metadata:progress',
             'timemodified' => 'privacy:metadata:timemodified',
         ], 'privacy:metadata:block_workloadplanner_plan');
         $collection->add_external_location_link('aiprovider', [
@@ -39,7 +40,7 @@ class provider implements \core_privacy\local\metadata\provider,
             return;
         }
         $records = array_values($DB->get_records('block_workloadplanner_plan', ['userid' => $userid], '',
-            'eventid, priority, effortminutes, reminderat, timemodified'));
+            'eventid, priority, effortminutes, reminderat, progress, timemodified'));
         writer::with_context($context)->export_data([get_string('pluginname', 'block_workloadplanner')],
             (object)['priorities' => $records]);
     }

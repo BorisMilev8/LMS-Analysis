@@ -22,5 +22,14 @@ function xmldb_block_workloadplanner_upgrade($oldversion) {
         }
         upgrade_block_savepoint(true, 2026100500, 'workloadplanner');
     }
+    if ($oldversion < 2026111800) {
+        $table = new xmldb_table('block_workloadplanner_plan');
+        $field = new xmldb_field('progress', XMLDB_TYPE_INTEGER, '2', null,
+            XMLDB_NOTNULL, null, '0', 'reminderat');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_block_savepoint(true, 2026111800, 'workloadplanner');
+    }
     return true;
 }

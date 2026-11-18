@@ -3,6 +3,63 @@ namespace block_workloadplanner;
 defined('MOODLE_INTERNAL') || die();
 /** Run inside an initialized Moodle 4.5 PHPUnit environment. */
 final class planner_test extends \advanced_testcase {
+    public function test_progress_only_record_is_private_and_can_be_reset(): void {
+        [$first, $second, $eventid] = $this->fixture();
+        planner::save($eventid, 0, 0, 0, 1);
+        $this->assertEquals(1, planner::priorities()[$eventid]->progress);
+        $this->setUser($second);
+        $this->assertEmpty(planner::priorities());
+        planner::save($eventid, 0, 0, 0, 2);
+        $this->setUser($first);
+        $this->assertEquals(1, planner::priorities()[$eventid]->progress);
+        planner::save($eventid, 0, 0, 0, 0);
+        $this->assertEmpty(planner::priorities());
+        $this->setUser($second);
+        $this->assertEquals(2, planner::priorities()[$eventid]->progress);
+    }
+
+    public function test_progress_preserves_other_fields_and_does_not_submit_work(): void {
+        global $DB;
+        [$first, $second, $eventid] = $this->fixture();
+        $event = $DB->get_record('event', ['id' => $eventid], '*', MUST_EXIST);
+        $assignment = $DB->get_record('assign', ['id' => $event->instance], '*', MUST_EXIST);
+        $reminder = time() + 3600;
+        planner::save($eventid, 3, 120, $reminder, 1);
+        planner::save($eventid, 3, null, null, 2);
+        $plan = planner::priorities()[$eventid];
+        $this->assertEquals(120, $plan->effortminutes);
+        $this->assertEquals($reminder, $plan->reminderat);
+        $this->assertEquals(2, $plan->progress);
+        // AI application and older callers omit progress and must preserve it.
+        planner::save($eventid, 1, 90);
+        $this->assertEquals(2, planner::priorities()[$eventid]->progress);
+        $this->assertEquals($reminder, planner::priorities()[$eventid]->reminderat);
+        $this->assertArrayHasKey($eventid, planner::activities());
+        $this->assertEquals($assignment, $DB->get_record('assign', ['id' => $event->instance]));
+        $this->assertFalse($DB->record_exists('assign_submission', ['assignment' => $event->instance]));
+    }
+
+    public function test_progress_rejects_invalid_values_without_changing_plan(): void {
+        [$first, $second, $eventid] = $this->fixture();
+        planner::save($eventid, 2, 60, 0, 1);
+        foreach ([-1, 3] as $progress) {
+            try {
+                planner::save($eventid, 0, 0, 0, $progress);
+                $this->fail('Invalid progress accepted');
+            } catch (\invalid_parameter_exception $e) {
+                $this->assertEquals(1, planner::priorities()[$eventid]->progress);
+                $this->assertEquals(60, planner::priorities()[$eventid]->effortminutes);
+            }
+        }
+    }
+
+    public function test_unenrolled_user_cannot_save_progress(): void {
+        [$first, $second, $eventid] = $this->fixture();
+        $this->setUser($this->getDataGenerator()->create_user());
+        $this->expectException(\moodle_exception::class);
+        planner::save($eventid, 0, 0, 0, 2);
+    }
+
     private function fixture(): array {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();

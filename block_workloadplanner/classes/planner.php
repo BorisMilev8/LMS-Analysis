@@ -39,15 +39,19 @@ class planner {
     public static function priorities(): array {
         global $DB, $USER;
         return $DB->get_records('block_workloadplanner_plan', ['userid' => $USER->id], '',
-            'eventid, priority, effortminutes, reminderat, timemodified');
+            'eventid, priority, effortminutes, reminderat, progress, timemodified');
     }
-    public static function save(int $eventid, int $priority, ?int $effortminutes = null, ?int $reminderat = null): void {
+    public static function save(int $eventid, int $priority, ?int $effortminutes = null,
+            ?int $reminderat = null, ?int $progress = null): void {
         global $DB, $USER;
         if ($priority < 0 || $priority > 3) {
             throw new \invalid_parameter_exception('Invalid priority');
         }
         if ($effortminutes !== null && ($effortminutes < 0 || $effortminutes > 10080)) {
             throw new \invalid_parameter_exception('Effort must be between 0 and 10080 minutes');
+        }
+        if ($progress !== null && ($progress < 0 || $progress > 2)) {
+            throw new \invalid_parameter_exception('Invalid personal progress');
         }
         $events = self::activities();
         if (!isset($events[$eventid])) {
@@ -57,10 +61,11 @@ class planner {
         $record = $DB->get_record('block_workloadplanner_plan', $conditions);
         $effortminutes = $effortminutes ?? (int)($record->effortminutes ?? 0);
         $reminderat = $reminderat ?? (int)($record->reminderat ?? 0);
+        $progress = $progress ?? (int)($record->progress ?? 0);
         if (!reminders::valid($reminderat, (int)$events[$eventid]->timesort)) {
             throw new \invalid_parameter_exception('Reminder must be on or before the activity action date');
         }
-        if ($priority === 0 && $effortminutes === 0 && $reminderat === 0) {
+        if ($priority === 0 && $effortminutes === 0 && $reminderat === 0 && $progress === 0) {
             $DB->delete_records('block_workloadplanner_plan', $conditions);
             return;
         }
@@ -69,12 +74,14 @@ class planner {
             $record->priority = $priority;
             $record->effortminutes = $effortminutes;
             $record->reminderat = $reminderat;
+            $record->progress = $progress;
             $record->timemodified = time();
             $DB->insert_record('block_workloadplanner_plan', $record);
         } else {
             $record->priority = $priority;
             $record->effortminutes = $effortminutes;
             $record->reminderat = $reminderat;
+            $record->progress = $progress;
             $record->timemodified = time();
             $DB->update_record('block_workloadplanner_plan', $record);
         }

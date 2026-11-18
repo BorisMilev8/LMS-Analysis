@@ -21,6 +21,8 @@ jobs:
         run: php tests/weekly_test.php
       - name: Test personal reminders
         run: php tests/reminders_test.php
+      - name: Test private progress persistence and safe updates
+        run: php tests/progress_test.php
       - name: Test planner sorting
         run: php tests/sorting_test.php
       - name: Test AI response validation, priority suggestions and workload warnings

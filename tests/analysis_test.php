@@ -70,5 +70,9 @@ check(analysis_rules::draft_valid($draft, 'abc', 'changed', $plan, $now), false,
 $changed = clone $plan;
 $changed->effortminutes = 45;
 check(analysis_rules::draft_valid($draft, 'abc', 'source', $changed, $now), false, 'Manual edit protected');
+$changed = clone $plan;
+$changed->progress = 2;
+check(analysis_rules::draft_valid($draft, 'abc', 'source', $changed, $now), false,
+    'Progress edit in the same second invalidates an existing AI draft');
 check(analysis_rules::draft_valid($draft, 'abc', 'source', null, $now), false, 'Deleted plan protected');
 echo "$checks assignment analysis and workload checks passed.\n";

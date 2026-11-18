@@ -23,7 +23,8 @@ if ($form->is_cancelled()) {
     if ((int)$data->eventid !== $eventid) {
         throw new invalid_parameter_exception('Event mismatch');
     }
-    \block_workloadplanner\planner::save($eventid, (int)$data->priority, (int)$data->effortminutes, (int)($data->reminderat ?? 0));
+    \block_workloadplanner\planner::save($eventid, (int)$data->priority, (int)$data->effortminutes,
+        (int)($data->reminderat ?? 0), (int)$data->progress);
     redirect($url, get_string('saved', 'block_workloadplanner'), null,
         \core\output\notification::NOTIFY_SUCCESS);
 }
@@ -33,6 +34,7 @@ $form->set_data([
     'priority' => $priorities[$eventid]->priority ?? 0,
     'effortminutes' => $priorities[$eventid]->effortminutes ?? 0,
     'reminderat' => $priorities[$eventid]->reminderat ?? 0,
+    'progress' => $priorities[$eventid]->progress ?? 0,
 ]);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($events[$eventid]->name));
