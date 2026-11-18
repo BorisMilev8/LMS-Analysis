@@ -15,6 +15,8 @@ final class planner_test extends \advanced_testcase {
         $assignment = $generator->create_module('assign', [
             'course' => $course->id, 'duedate' => time() - 3600,
             'assignsubmission_file_enabled' => 1,
+            'assignsubmission_file_maxfiles' => 1,
+            'assignsubmission_file_maxsizebytes' => 0,
         ]);
         $eventid = $DB->get_field('event', 'id', ['modulename' => 'assign',
             'instance' => $assignment->id, 'eventtype' => 'due', 'userid' => 0, 'groupid' => 0], MUST_EXIST);
